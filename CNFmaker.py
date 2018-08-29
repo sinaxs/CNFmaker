@@ -12,6 +12,8 @@
 #################################################
 
 import sys
+import re
+import os
 import os.path
 
 # if len(sys.argv) == 1:
@@ -22,8 +24,10 @@ import os.path
 input_PCNF  = "input.pcnf"
 
 output_path = input_PCNF.split(".")[0]+".wcnf"
+# output_path = "~/Desktop/output.wcnf"
 
 pyCNF_clauses = []
+CNF_clauses = []
 varibales_set = set()
 variables = []
 
@@ -44,13 +48,13 @@ number_of_clauses = len(pyCNF_clauses)
 # Finding Variables
 print "Finding Variables..."
 print "------------------------------"
-temp_clauses = []
+pyCNF_clauses_trimmed = []
 
 for clause in pyCNF_clauses:
-	temp_clauses.append(clause.strip().split(" "))
+	pyCNF_clauses_trimmed.append(clause.strip().split(" "))
 
 # Removing duplicates
-for clause in temp_clauses:
+for clause in pyCNF_clauses_trimmed:
 	for var in clause:
 		varibales_set.add(var.strip("~"))
 
@@ -67,4 +71,35 @@ number_of_variables = len(variables)
 
 #######################################################
 
-print variables
+print pyCNF_clauses_trimmed
+# print variables
+
+for clause in pyCNF_clauses_trimmed:
+	sep = " "
+	tempClause = ""
+	for literal in clause:
+		if literal != "&":
+			if literal[0] != "~":
+				tempClause = tempClause + str(variables.index(literal) + 1) + sep
+			else:
+				tempClause = tempClause + "-" + str(variables.index(literal.strip("~")) + 1) + sep
+	
+	tempClause = tempClause + "0"
+	CNF_clauses.append(tempClause)			
+
+print CNF_clauses
+
+#######################################################
+
+# Make output file
+
+with open(output_path, "wt") as fout:
+	fout.write("c\n")
+	fout.write("c this is a comment\n")
+	fout.write("c\n")
+	fout.write("c\n")
+	fout.write("p cnf {} {}\n".format(number_of_variables,number_of_clauses))
+
+	for clause in CNF_clauses:
+		fout.write(clause + "\n") 
+
